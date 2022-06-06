@@ -1,10 +1,7 @@
-import mtcnn
-
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 import cv2 # opencv
-from mtcnn.mtcnn import MTCNN
-from matplotlib import pyplot as plt
-from keras.models import load_model
-from PIL import Image
 
+from facenet.utils import show_image
+
+if __name__ == '__main__':
+    img = cv2.imread('../input/data/train/ben_afflek/httpcsvkmeuaeccjpg.jpg')
+    show_image(img);
