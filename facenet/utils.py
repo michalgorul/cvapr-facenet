@@ -15,6 +15,13 @@ def show_image(img) -> None:
     print(f"img.shape: {img.shape}")
 
 
+def show_extracted_face(file_path: str) -> None:
+    face = extract_face(file_path)
+    plt.imshow(face)
+    plt.show()
+    print(f"img.shape: {face.shape}")
+
+
 # extract a single face from a given photograph
 def extract_face(filename: str, required_size: Tuple = (160, 160)):
     # load image from file
@@ -50,15 +57,3 @@ def load_faces_from_dir(path_dir: str) -> List[ndarray]:
         faces.append(face)
     return faces
 
-
-def load_dataset(path_dir: str) -> tuple[ndarray, ndarray]:
-    # list for faces and labels
-    X, y = list(), list()
-    for subdir in os.listdir(path_dir):
-        path = path_dir + subdir + '/'
-        faces = load_faces_from_dir(path)
-        labels = [subdir for i in range(len(faces))]
-        print("loaded %d sample for class: %s" % (len(faces),subdir) ) # print progress
-        X.extend(faces)
-        y.extend(labels)
-    return np.asarray(X), np.asarray(y)
