@@ -1,20 +1,22 @@
 import os
+from typing import Tuple, List
 
 import cv2
 import numpy as np
 from PIL import Image
 from matplotlib import pyplot as plt
 from mtcnn import MTCNN
+from numpy import ndarray
 
 
-def show_image(img):
+def show_image(img) -> None:
     plt.imshow(img, cmap='gray', interpolation='bicubic')
     plt.show()
-    print(img.shape)
+    print(f"img.shape: {img.shape}")
 
 
 # extract a single face from a given photograph
-def extract_face(filename, required_size=(160, 160)):
+def extract_face(filename: str, required_size: Tuple = (160, 160)):
     # load image from file
     image = Image.open(filename)
     # convert to RGB, if needed
@@ -39,22 +41,22 @@ def extract_face(filename, required_size=(160, 160)):
     return face_array
 
 
-def load_faces(dir):
+def load_faces_from_dir(path_dir: str) -> List[ndarray]:
     faces = list()
     # enumerate files
-    for filename in os.listdir(dir):
-        path = dir + filename
+    for filename in os.listdir(path_dir):
+        path = path_dir + filename
         face = extract_face(path)
         faces.append(face)
     return faces
 
 
-def load_dataset(dir):
+def load_dataset(path_dir: str) -> tuple[ndarray, ndarray]:
     # list for faces and labels
     X, y = list(), list()
-    for subdir in os.listdir(dir):
-        path = dir + subdir + '/'
-        faces = load_faces(path)
+    for subdir in os.listdir(path_dir):
+        path = path_dir + subdir + '/'
+        faces = load_faces_from_dir(path)
         labels = [subdir for i in range(len(faces))]
         print("loaded %d sample for class: %s" % (len(faces),subdir) ) # print progress
         X.extend(faces)
