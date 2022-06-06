@@ -24,6 +24,18 @@ class Facenet:
         self._load_the_facenet_dataset()
         self._load_facenet_model()
 
+    def _get_embedding(self, model, face):
+        # scale pixel values
+        face = face.astype('float32')
+        # standardization
+        mean, std = face.mean(), face.std()
+        face = (face - mean) / std
+        # transfer face into one sample (3 dimension to 4 dimension)
+        sample = np.expand_dims(face, axis=0)
+        # make prediction to get embedding
+        yhat = model.predict(sample)
+        return yhat[0]
+
     def _load_the_facenet_dataset(self) -> None:
         data = np.load('5-celebrity-faces-dataset.npz')
         self.trainX, self.trainY, self.testX, self.testY = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
