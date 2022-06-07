@@ -1,121 +1,167 @@
 import os
+from os.path import isdir
+from random import choice
 from typing import Tuple
 
 import numpy as np
 from keras.models import load_model
-from numpy import ndarray
+from matplotlib import pyplot as plt, pyplot
+from numpy import ndarray, load, expand_dims, savez_compressed, asarray
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import Normalizer, LabelEncoder
 from sklearn.svm import SVC
 
-from facenet.utils import load_faces_from_dir
+from facenet.utils import load_faces_from_dir, get_embedding
 
 
 class Facenet:
     data_train_path = '../input/data/train/'
     data_val_path = '../input/data/val/'
     celebrity_faces_dataset_path = '../resources/5-celebrity-faces-dataset.npz'
+    celebrity_faces_embeddings_path = '../resources/5-celebrity-faces-embeddings.npz'
     facenet_keras_path = '../resources/facenet_keras.h5'
 
-    def __int__(self) -> None:
-        self.trainX = None
-        self.trainY = None
-        self.testX = None
-        self.testY = None
-        self.facenet_model = None
-        self.emdTrainX = None
-        self.emdTestX = None
+    def __init__(self) -> None:
+        self.model = None
+        self._setup()
 
-    def setup(self):
+    def _setup(self):
         # self._load_train_test_datasets()
-        self._load_the_facenet_dataset()
         self._load_facenet_model()
         self._convert_train_test_faces_into_embedding()
 
-    def calculate_accuracy(self):
-        print("Dataset: train=%d, test=%d" % (self.emdTrainX.shape[0], self.emdTestX.shape[0]))
+    def make_prediction(self):
+        # load faces
+        data = load(self.celebrity_faces_dataset_path)
+        testX_faces = data['arr_2']
+        # load face embeddings
+        data = load(self.celebrity_faces_embeddings_path)
+        trainX, trainY, testX, testY = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
         # normalize input vectors
-        in_encoder = Normalizer()
-        emdTrainX_norm = in_encoder.transform(self.emdTrainX)
-        emdTestX_norm = in_encoder.transform(self.emdTestX)
+        in_encoder = Normalizer(norm='l2')
+        trainX = in_encoder.transform(trainX)
+        testX = in_encoder.transform(testX)
         # label encode targets
         out_encoder = LabelEncoder()
-        out_encoder.fit(self.trainY)
-        trainy_enc = out_encoder.transform(self.trainY)
-        testy_enc = out_encoder.transform(self.testY)
+        out_encoder.fit(trainY)
+        trainY = out_encoder.transform(trainY)
+        testY = out_encoder.transform(testY)
         # fit model
         model = SVC(kernel='linear', probability=True)
-        model.fit(emdTrainX_norm, trainy_enc)
+        model.fit(trainX, trainY)
+        # test model on a random example from the test dataset
+
+
+        selection = choice([i for i in range(testX.shape[0])])
+        random_face_pixels = testX_faces[selection]
+        random_face_emb = testX[selection]
+        random_face_class = testY[selection]
+        random_face_name = out_encoder.inverse_transform([random_face_class])
+        # prediction for the face
+        samples = expand_dims(random_face_emb, axis=0)
+        yhat_class = model.predict(samples)
+        yhat_prob = model.predict_proba(samples)
+        # get name
+        class_index = yhat_class[0]
+        class_probability = yhat_prob[0, class_index] * 100
+        predict_names = out_encoder.inverse_transform(yhat_class)
+
+
+        print('Predicted: %s (%.3f)' % (predict_names[0], class_probability))
+        print('Expected: %s' % random_face_name[0])
+        # plot for fun
+        pyplot.imshow(random_face_pixels)
+        title = '%s (%.3f)' % (predict_names[0], class_probability)
+        pyplot.title(title)
+        pyplot.show()
+
+    def calculate_accuracy(self):
+        # load dataset
+        data = load(self.celebrity_faces_embeddings_path)
+        trainX, trainY, testX, testY = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
+        print('Loaded: ', trainX.shape, trainY.shape, testX.shape, testY.shape)
+        print('Dataset: train=%d, test=%d' % (trainX.shape[0], testX.shape[0]))
+        # normalize input vectors
+        in_encoder = Normalizer(norm='l2')
+        print(trainX.shape)
+        trainX = in_encoder.transform(trainX)
+        testX = in_encoder.transform(testX)
+        # label encode targets
+        out_encoder = LabelEncoder()
+        out_encoder.fit(trainY)
+        trainY = out_encoder.transform(trainY)
+        testY = out_encoder.transform(testY)
+        # fit model
+        self.model = SVC(kernel='linear', probability=True)
+        self.model.fit(trainX, trainY)
         # predict
-        yhat_train = model.predict(emdTrainX_norm)
-        yhat_test = model.predict(emdTestX_norm)
+        yhat_train = self.model.predict(trainX)
+        yhat_test = self.model.predict(testX)
         # score
-        score_train = accuracy_score(trainy_enc, yhat_train)
-        score_test = accuracy_score(testy_enc, yhat_test)
+        score_train = accuracy_score(trainY, yhat_train)
+        score_test = accuracy_score(testY, yhat_test)
         # summarize
         print('Accuracy: train=%.3f, test=%.3f' % (score_train * 100, score_test * 100))
 
+    # calculate a face embedding for each face in the dataset using facenet
     def _convert_train_test_faces_into_embedding(self):
-        self.emdTrainX = self._convert_faces_into_embedding(self.trainX)
-        self.emdTestX = self._convert_faces_into_embedding(self.testX)
-        np.savez_compressed('5-celebrity-faces-embeddings.npz', self.emdTrainX, self.trainY,
-                            self.emdTestX, self.testY)
-
-    def _convert_faces_into_embedding(self, faces) -> ndarray:
-        emd_faces = list()
-        for face in faces:
-            emd = self._get_embedding(self.facenet_model, face)
-            emd_faces.append(emd)
-
-        emd_faces = np.asarray(emd_faces)
-        return emd_faces
-
-    def _get_embedding(self, model, face):
-        # scale pixel values
-        face = face.astype('float32')
-        # standardization
-        mean, std = face.mean(), face.std()
-        face = (face - mean) / std
-        # transfer face into one sample (3 dimension to 4 dimension)
-        sample = np.expand_dims(face, axis=0)
-        # make prediction to get embedding
-        yhat = model.predict(sample)
-        return yhat[0]
+        # load the face dataset
+        data = load(self.celebrity_faces_dataset_path)
+        trainX, trainY, testX, testY = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
+        print('Loaded: ', trainX.shape, trainY.shape, testX.shape, testY.shape)
+        # convert each face in the train set to an embedding
+        newTrainX = list()
+        for face in trainX:
+            embedding = get_embedding(self.model, face)
+            newTrainX.append(embedding)
+        newTrainX = asarray(newTrainX)
+        print(newTrainX.shape)
+        # convert each face in the test set to an embedding
+        newTestX = list()
+        for face in testX:
+            embedding = get_embedding(self.model, face)
+            newTestX.append(embedding)
+        newTestX = asarray(newTestX)
+        print(newTestX.shape)
+        # save arrays to one file in compressed format
+        savez_compressed(self.celebrity_faces_embeddings_path, newTrainX, trainY,
+                         newTestX, testY)
+        print('Saved embeddings: ', newTrainX.shape, trainY.shape, newTestX.shape, testY.shape)
 
     def _load_facenet_model(self) -> None:
         # load the model
-        self.facenet_model = load_model(self.facenet_keras_path)
+        self.model = load_model(self.facenet_keras_path)
         # summarize input and output shape
         print('Model Loaded')
-        print(self.facenet_model.inputs)
-        print(self.facenet_model.outputs)
-
-    def _load_the_facenet_dataset(self) -> None:
-        data = np.load(self.celebrity_faces_dataset_path)
-        self.trainX, self.trainY, self.testX, self.testY = data['arr_0'], data['arr_1'], data[
-            'arr_2'], data['arr_3']
-        print('Loaded: trainX.shape: ', self.trainX.shape, ' trainY.shape: ', self.trainY.shape,
-              ' testX.shape: ', self.testX.shape, ' testY.shape: ', self.testY.shape)
+        print(self.model.inputs)
+        print(self.model.outputs)
 
     def _load_train_test_datasets(self) -> None:
-        print('\nload train dataset')
-        trainX, trainY = self.load_dataset(self.data_train_path)
-        print('trainX.shape: ', trainX.shape, ' trainY.shape: ', trainY.shape)
-        print('\nload test dataset')
-        testX, testY = self.load_dataset(self.data_val_path)
-        print('testX.shape: ', testX.shape, ' testY.shape: ', testY.shape)
+        # load train dataset
+        trainX, trainy = self._load_dataset(self.data_train_path)
+        print(trainX.shape, trainy.shape)
+        # load test dataset
+        testX, testy = self._load_dataset(self.data_val_path)
+        # save arrays to one file in compressed format
+        savez_compressed(self.celebrity_faces_dataset_path, trainX, trainy, testX, testy)
 
-        # save and compress the dataset for further use
-        np.savez_compressed(self.celebrity_faces_dataset_path, trainX, trainY, testX, testY)
-
-    def load_dataset(self, path_dir: str) -> Tuple[ndarray, ndarray]:
-        # list for faces and labels
+    # load a dataset that contains one subdir for each class that in turn contains images
+    def _load_dataset(self, directory: str):
         X, y = list(), list()
-        for subdir in os.listdir(path_dir):
-            path = path_dir + subdir + '/'
+        # enumerate folders, on per class
+        for subdir in os.listdir(directory):
+            # path
+            path = directory + subdir + '/'
+            # skip any files that might be in the dir
+            if not isdir(path):
+                continue
+            # load all faces in the subdirectory
             faces = load_faces_from_dir(path)
-            labels = [subdir for i in range(len(faces))]
-            print("loaded %d sample for class: %s" % (len(faces), subdir))  # print progress
+            # create labels
+            labels = [subdir for _ in range(len(faces))]
+            # summarize progress
+            print('>loaded %d examples for class: %s' % (len(faces), subdir))
+            # store
             X.extend(faces)
             y.extend(labels)
-        return np.asarray(X), np.asarray(y)
+        return asarray(X), asarray(y)
