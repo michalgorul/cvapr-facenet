@@ -9,7 +9,7 @@ from numpy import ndarray, expand_dims, asarray
 
 
 def save_file_to_validation_folder(face_name: str, file_name: str) -> None:
-    img = cv2.imread('loadimage.jpeg')
+    img = cv2.imread(file_name)
     cv2.imwrite(f'../input/validation/{face_name}/{file_name}', img)
 
 
