@@ -37,7 +37,7 @@ class Facenet:
         return yhat[0]
 
     def _load_the_facenet_dataset(self) -> None:
-        data = np.load('5-celebrity-faces-dataset.npz')
+        data = np.load('../resources/5-celebrity-faces-dataset.npz')
         self.trainX, self.trainY, self.testX, self.testY = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
         print('Loaded: ', self.trainX.shape, self.trainY.shape, self.testX.shape, self.testY.shape)
 
@@ -55,7 +55,7 @@ class Facenet:
         print(testX.shape, testy.shape)
 
         # save and compress the dataset for further use
-        np.savez_compressed('5-celebrity-faces-dataset.npz', trainX, trainy, testX, testy)
+        np.savez_compressed('../resources/5-celebrity-faces-dataset.npz', trainX, trainy, testX, testy)
 
     def load_dataset(self, path_dir: str) -> Tuple[ndarray, ndarray]:
         # list for faces and labels
