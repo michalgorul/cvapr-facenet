@@ -18,9 +18,9 @@ class Facenet:
     celebrity_faces_embeddings_path = '../resources/5-celebrity-faces-embeddings.npz'
     facenet_keras_path = '../resources/facenet_keras.h5'
 
-    def __init__(self) -> None:
+    def __init__(self, load_datasets: bool = False) -> None:
         self.model = None
-        self._setup()
+        self._setup(load_datasets)
 
     def _setup(self, load_datasets: bool = False) -> None:
         if load_datasets:
@@ -50,7 +50,7 @@ class Facenet:
         # test model on a random example from the test dataset
 
 
-        selection = 5
+        selection = 0
         random_face_pixels = testX_faces[selection]
         random_face_emb = testX[selection]
         random_face_class = testY[selection]

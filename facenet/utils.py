@@ -2,23 +2,27 @@ import os
 from typing import Tuple, List
 
 import cv2
-import numpy as np
 from PIL import Image
-from matplotlib import pyplot as plt
+from matplotlib import pyplot
 from mtcnn import MTCNN
 from numpy import ndarray, expand_dims, asarray
 
 
+def save_file_to_validation_folder(face_name: str, file_name: str) -> None:
+    img = cv2.imread('loadimage.jpeg')
+    cv2.imwrite(f'../input/validation/{face_name}/{file_name}', img)
+
+
 def show_image(img) -> None:
-    plt.imshow(img, cmap='gray', interpolation='bicubic')
-    plt.show()
+    pyplot.imshow(img, cmap='gray', interpolation='bicubic')
+    pyplot.show()
     print(f"img.shape: {img.shape}")
 
 
 def show_extracted_face(file_path: str) -> None:
     face = extract_face(file_path)
-    plt.imshow(face)
-    plt.show()
+    pyplot.imshow(face)
+    pyplot.show()
     print(f"img.shape: {face.shape}")
 
 
