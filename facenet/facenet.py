@@ -15,8 +15,8 @@ from facenet.utils import load_faces_from_dir, get_embedding
 
 
 class Facenet:
-    data_train_path = '../input/data/train/'
-    data_val_path = '../input/data/val/'
+    data_train_path = '../input/train/'
+    data_val_path = '../input/validation/'
     celebrity_faces_dataset_path = '../resources/5-celebrity-faces-dataset.npz'
     celebrity_faces_embeddings_path = '../resources/5-celebrity-faces-embeddings.npz'
     facenet_keras_path = '../resources/facenet_keras.h5'
@@ -26,7 +26,7 @@ class Facenet:
         self._setup()
 
     def _setup(self):
-        # self._load_train_test_datasets()
+        self._load_train_test_datasets()
         self._load_facenet_model()
         self._convert_train_test_faces_into_embedding()
 
@@ -52,7 +52,7 @@ class Facenet:
         # test model on a random example from the test dataset
 
 
-        selection = choice([i for i in range(testX.shape[0])])
+        selection = 5
         random_face_pixels = testX_faces[selection]
         random_face_emb = testX[selection]
         random_face_class = testY[selection]
@@ -79,11 +79,10 @@ class Facenet:
         # load dataset
         data = load(self.celebrity_faces_embeddings_path)
         trainX, trainY, testX, testY = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
-        print('Loaded: ', trainX.shape, trainY.shape, testX.shape, testY.shape)
+        print('Loaded embeddings: ', trainX.shape, trainY.shape, testX.shape, testY.shape)
         print('Dataset: train=%d, test=%d' % (trainX.shape[0], testX.shape[0]))
         # normalize input vectors
         in_encoder = Normalizer(norm='l2')
-        print(trainX.shape)
         trainX = in_encoder.transform(trainX)
         testX = in_encoder.transform(testX)
         # label encode targets
@@ -108,7 +107,7 @@ class Facenet:
         # load the face dataset
         data = load(self.celebrity_faces_dataset_path)
         trainX, trainY, testX, testY = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
-        print('Loaded: ', trainX.shape, trainY.shape, testX.shape, testY.shape)
+        print('Loaded dataset: ', trainX.shape, trainY.shape, testX.shape, testY.shape)
         # convert each face in the train set to an embedding
         newTrainX = list()
         for face in trainX:
@@ -137,13 +136,15 @@ class Facenet:
         print(self.model.outputs)
 
     def _load_train_test_datasets(self) -> None:
-        # load train dataset
-        trainX, trainy = self._load_dataset(self.data_train_path)
-        print(trainX.shape, trainy.shape)
-        # load test dataset
-        testX, testy = self._load_dataset(self.data_val_path)
+        print('\nload train dataset')
+        trainX, trainY = self._load_dataset(self.data_train_path)
+        print('trainX.shape: ', trainX.shape, ' trainY.shape: ', trainY.shape)
+
+        print('\nload test dataset')
+        testX, testY = self._load_dataset(self.data_val_path)
+        print('testX.shape: ', testX.shape, ' testY.shape: ', testY.shape)
         # save arrays to one file in compressed format
-        savez_compressed(self.celebrity_faces_dataset_path, trainX, trainy, testX, testy)
+        savez_compressed(self.celebrity_faces_dataset_path, trainX, trainY, testX, testY)
 
     # load a dataset that contains one subdir for each class that in turn contains images
     def _load_dataset(self, directory: str):
