@@ -1,12 +1,9 @@
 import os
 from os.path import isdir
-from random import choice
-from typing import Tuple
 
-import numpy as np
 from keras.models import load_model
-from matplotlib import pyplot as plt, pyplot
-from numpy import ndarray, load, expand_dims, savez_compressed, asarray
+from matplotlib import pyplot
+from numpy import load, expand_dims, savez_compressed, asarray
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import Normalizer, LabelEncoder
 from sklearn.svm import SVC
