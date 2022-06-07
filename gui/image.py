@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import QMainWindow, QApplication, QPushButton, QLabel, QFileDialog
+import os
+
 from PyQt5 import uic
 from PyQt5.QtGui import QPixmap
-import sys
+from PyQt5.QtWidgets import QMainWindow, QPushButton, QLabel, QFileDialog
 
 IMAGE_WIDTH = 720
 IMAGE_HEIGHT = 471
@@ -11,9 +12,8 @@ class UI(QMainWindow):
     def __init__(self):
         self.fname = None
         super(UI, self).__init__()
-
         # Load the ui file
-        uic.loadUi("image.ui", self)
+        uic.loadUi("../gui/image.ui", self)
 
         # Define our widgets
         self.button = self.findChild(QPushButton, "pushButton")
@@ -40,9 +40,3 @@ class UI(QMainWindow):
     def processImage(self):
         print(self.fname)
         self.label_2.setText('Ryj kolegi')
-
-
-# Initialize The App
-app = QApplication(sys.argv)
-UIWindow = UI()
-app.exec_()

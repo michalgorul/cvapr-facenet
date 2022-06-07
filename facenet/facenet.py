@@ -22,8 +22,9 @@ class Facenet:
         self.model = None
         self._setup()
 
-    def _setup(self):
-        self._load_train_test_datasets()
+    def _setup(self, load_datasets: bool = False) -> None:
+        if load_datasets:
+            self._load_train_test_datasets()
         self._load_facenet_model()
         self._convert_train_test_faces_into_embedding()
 
@@ -63,14 +64,13 @@ class Facenet:
         class_probability = yhat_prob[0, class_index] * 100
         predict_names = out_encoder.inverse_transform(yhat_class)
 
-
         print('Predicted: %s (%.3f)' % (predict_names[0], class_probability))
         print('Expected: %s' % random_face_name[0])
         # plot for fun
         pyplot.imshow(random_face_pixels)
         title = '%s (%.3f)' % (predict_names[0], class_probability)
         pyplot.title(title)
-        pyplot.show()
+        pyplot.savefig(f'../output/{predict_names[0]}.jpg')
 
     def calculate_accuracy(self):
         # load dataset
