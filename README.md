@@ -1,5 +1,11 @@
 # cvapr-facenet
 
+## Versions
+
+- <b> Python </b> - 3.6.8
+- <b> Tensorflow </b> - 2.2.0
+- <b> Keras </b> - 2.3.0
+
 ## Setup Virtualenv on Windows
 ```console
 pip install --upgrade pip
