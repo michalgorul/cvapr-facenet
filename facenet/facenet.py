@@ -3,7 +3,7 @@ from typing import Tuple
 
 import numpy as np
 from numpy import ndarray
-from tensorflow.python.keras.models import load_model
+from keras.models import load_model
 
 from facenet.utils import load_faces_from_dir
 
@@ -11,6 +11,7 @@ from facenet.utils import load_faces_from_dir
 class Facenet:
     data_train_path = '../input/data/train/'
     data_val_path = '../input/data/val/'
+    celebrity_faces_dataset_path = '../resources/5-celebrity-faces-dataset.npz'
 
     def __int__(self) -> None:
         self.trainX = None
@@ -20,8 +21,8 @@ class Facenet:
         self.facenet_model = None
 
     def setup(self):
-        self._load_train_test_datasets()
-        self._load_the_facenet_dataset()
+        # self._load_train_test_datasets()
+        # self._load_the_facenet_dataset()
         self._load_facenet_model()
 
     def _get_embedding(self, model, face):
@@ -37,14 +38,17 @@ class Facenet:
         return yhat[0]
 
     def _load_the_facenet_dataset(self) -> None:
-        data = np.load('../resources/5-celebrity-faces-dataset.npz')
+        data = np.load(self.celebrity_faces_dataset_path)
         self.trainX, self.trainY, self.testX, self.testY = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
         print('Loaded: ', self.trainX.shape, self.trainY.shape, self.testX.shape, self.testY.shape)
 
-    # TODO find proper model for our TF version
     def _load_facenet_model(self) -> None:
+        # load the model
         self.facenet_model = load_model('facenet_keras.h5')
-        print('Loaded Model')
+        # summarize input and output shape
+        print('Model Loaded')
+        print(self.facenet_model.inputs)
+        print(self.facenet_model.outputs)
 
     def _load_train_test_datasets(self) -> None:
         print('\nload train dataset')
@@ -55,7 +59,7 @@ class Facenet:
         print(testX.shape, testy.shape)
 
         # save and compress the dataset for further use
-        np.savez_compressed('../resources/5-celebrity-faces-dataset.npz', trainX, trainy, testX, testy)
+        np.savez_compressed(self.celebrity_faces_dataset_path, trainX, trainy, testX, testy)
 
     def load_dataset(self, path_dir: str) -> Tuple[ndarray, ndarray]:
         # list for faces and labels
