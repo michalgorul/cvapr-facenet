@@ -1,4 +1,5 @@
 import os
+from os.path import isdir
 from typing import Tuple, List
 
 import cv2
@@ -77,3 +78,31 @@ def load_faces_from_dir(path_dir: str) -> List[ndarray]:
         # store
         faces.append(face)
     return faces
+
+# load images and extract faces for all images in a directory
+def load_filenames_in_list(path_dir: str) -> List[ndarray]:
+    faces = list()
+    # enumerate files
+    for filename in os.listdir(path_dir):
+        faces.append(os.path.basename(filename))
+    return faces
+
+
+def get_index(filename_to_check):
+    data_val_path = '../input/validation/'
+    faces = list()
+    filename = os.path.basename(filename_to_check)
+    for subdir in os.listdir(data_val_path):
+        # path
+        try:
+            path = data_val_path + subdir + '/'
+            # skip any files that might be in the dir
+            if not isdir(path):
+                continue
+            # load all faces in the subdirectory
+            faces = faces + load_filenames_in_list(path)
+        except Exception:
+            raise
+
+    print('len(faces): ', len(faces))
+    return faces.index(filename)

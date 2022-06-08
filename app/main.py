@@ -16,5 +16,3 @@ if __name__ == '__main__':
     UIWindow = UI()
     app.exec_()
 
-    facenet = Facenet(True)
-    facenet.make_prediction()

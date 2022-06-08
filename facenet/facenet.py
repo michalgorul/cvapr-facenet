@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import Normalizer, LabelEncoder
 from sklearn.svm import SVC
 
-from facenet.utils import load_faces_from_dir, get_embedding
+from facenet.utils import load_faces_from_dir, get_embedding, load_filenames_in_list
 
 
 class Facenet:
@@ -28,7 +28,7 @@ class Facenet:
         self._load_facenet_model()
         self._convert_train_test_faces_into_embedding()
 
-    def make_prediction(self):
+    def make_prediction(self, index):
         # load faces
         data = load(self.celebrity_faces_dataset_path)
         testX_faces = data['arr_2']
@@ -49,8 +49,7 @@ class Facenet:
         model.fit(trainX, trainY)
         # test model on a random example from the test dataset
 
-
-        selection = 0
+        selection = index
         random_face_pixels = testX_faces[selection]
         random_face_emb = testX[selection]
         random_face_class = testY[selection]
@@ -163,3 +162,7 @@ class Facenet:
             X.extend(faces)
             y.extend(labels)
         return asarray(X), asarray(y)
+
+
+
+
