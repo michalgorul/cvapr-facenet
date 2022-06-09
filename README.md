@@ -17,7 +17,6 @@ py -3.6 -m pip install virtualenv
 py -3.6 -m virtualenv venv
 .\venv\Scripts\activate
 py -3.6 -m pip install -r requirements.txt
-py -3.6 -m pip install ./resources/tensorflow-2.2.0-cp36-cp36m-win_amd64.whl
 ```
 Next configure your IDE. [Help](https://www.jetbrains.com/help/pycharm/creating-virtual-environment.html#env-requirements) <br>
 `Add interpreter &rarr; Existing enviroment &rarr; Choose interpreter (C:\Users\<User>\AppData\Local\Programs\Python\Python36\python.exe)`
@@ -35,11 +34,3 @@ x64 (64 bit)
 Open C:\Windows\system32\cmd.exe
 Run the command: powershell Set-ExecutionPolicy RemoteSigned
 ```
-
-## Instruction
-
-1. Load directory with test images and put it in `input/train`. Name the folder as pearson name. **TO IMPLEMENT**
-2. Load the image to be processed. Save it with `facenet/utils/save_file_to_validation_folder` function.
-3. Initialize `Facenet` object with `load_datasets=True`
-4. After pressing `Process Image` button in UI call `make_prediction()` function from `Facenet` object. &larr;**TO IMPLEMENT** Output image will be saved in `output` folder with name `{pearson_name}.jpg`
-5. Take that result image and display it in the UI **TO IMPLEMENT**
