@@ -10,7 +10,6 @@ Working ✅✅✅✅
 
 ## Setup Virtualenv on Windows
 
-Download Tensorflow `*.whl` file and put it in `/resources` folder
 ```console
 py -3.6 -m pip install --upgrade pip
 py -3.6 -m pip install virtualenv
